@@ -63,35 +63,36 @@ var clone = function(fn) {
     return fn.bind({});
 };
 
-var check_url = function(url) {
-    rest.get(url).on('complete', function(result) {
-        if(result instanceof Error) {
-            process.exit(1);
-        } else {
-            var htmlfile = "url_response.html";
-            fs.writeFileSync(htmlfile, result);
-            checkings(htmlfile);
-        }
-    });
-};
-
-var checkings = function(file) {
+var grade_by_file = function(file) {
     var checkJson = checkHtmlFile(file, program.checks);
     var outJson = JSON.stringify(checkJson, null, 4);
     console.log(outJson);
 };
 
+var grade_by_url = function(url) {
+    rest.get(url).on('complete', function(result) {
+        if(result instanceof Error) {
+            process.exit(1);
+        } else {
+            var target = "target.html";
+            fs.writeFileSync(target, result);
+            checkings(target);
+        }
+    });
+};
+
+
 if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-        .option('-u, --url <url>', 'File Url')
+        .option('-u, --url <url>', 'Url to grade')
         .parse(process.argv);
 
-    if( program.url ) {
-        check_url(program.url);
+    if(program.url) {
+        grade_by_url( program.url );
     } else {
-        checkings(program.file);
+        grade_by_file( program.file );
     }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
